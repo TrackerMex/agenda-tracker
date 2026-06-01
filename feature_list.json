@@ -1,0 +1,288 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "version": "1.0",
+  "project": "Plataforma de Agendas para Capacitaciones",
+  "lastUpdated": "2026-06-01",
+  "features": [
+    {
+      "id": "F00",
+      "name": "Setup Inicial y Arquitectura Harness",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": [],
+      "estimatedWeeks": 1,
+      "actualWeeks": 0.1,
+      "completedDate": "2026-05-20",
+      "assignedAgent": "orchestrator",
+      "artifacts": [
+        "AGENTS.md",
+        "CHECKPOINTS.md",
+        "feature_list.json",
+        "init.sh",
+        "docs/ARCHITECTURE.md",
+        "docs/CONVENTIONS.md",
+        "docs/VERIFICATION.md",
+        ".claude/agents/orchestrator.md",
+        ".claude/agents/builder.md",
+        ".claude/agents/reviewer.md",
+        "progress/current.md",
+        "progress/history.md",
+        "README.md",
+        "backend/.env.example"
+      ]
+    },
+    {
+      "id": "F01",
+      "name": "Base de Datos - Schema y Migraciones",
+      "status": "done",
+      "priority": "critical",
+      "dependencies": ["F00"],
+      "estimatedWeeks": 2,
+      "actualWeeks": 0.2,
+      "completedDate": "2026-06-01",
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/db/schema.ts",
+        "backend/drizzle.config.ts",
+        "backend/src/db/migrations/",
+        "backend/src/db/seed.ts"
+      ],
+      "description": "Crear 9 tablas con Drizzle ORM: areas, usuarios, capacitaciones, registros_capacitacion, roles, permisos, role_permisos, usuarios_roles, auditoria_roles"
+    },
+    {
+      "id": "F02",
+      "name": "Backend - Autenticación JWT + OAuth",
+      "status": "pending",
+      "priority": "critical",
+      "dependencies": ["F01"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/routes/auth.js",
+        "backend/src/controllers/authController.js",
+        "backend/src/middleware/auth.js",
+        "backend/src/services/auth.service.js"
+      ],
+      "endpoints": [
+        "POST /api/auth/register",
+        "POST /api/auth/login",
+        "POST /api/auth/google",
+        "POST /api/auth/outlook",
+        "POST /api/auth/refresh"
+      ]
+    },
+    {
+      "id": "F03",
+      "name": "Backend - CRUD Áreas y Usuarios",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F02"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/routes/areas.js",
+        "backend/src/routes/usuarios.js",
+        "backend/src/controllers/areasController.js",
+        "backend/src/controllers/usuariosController.js",
+        "backend/src/middleware/rbac.js"
+      ],
+      "endpoints": [
+        "GET /api/areas",
+        "GET /api/areas/:id",
+        "GET /api/areas/:id/personal (CRUCIAL)",
+        "POST /api/areas",
+        "PUT /api/areas/:id",
+        "GET /api/usuarios",
+        "GET /api/usuarios/:id",
+        "PUT /api/usuarios/:id"
+      ]
+    },
+    {
+      "id": "F04",
+      "name": "Backend - CRUD Capacitaciones y Registros",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F03"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/routes/capacitaciones.js",
+        "backend/src/routes/registros.js",
+        "backend/src/controllers/capacitacionesController.js",
+        "backend/src/controllers/registrosController.js"
+      ],
+      "endpoints": [
+        "GET /api/capacitaciones",
+        "GET /api/capacitaciones/:id",
+        "GET /api/areas/:id/capacitaciones",
+        "POST /api/capacitaciones",
+        "PUT /api/capacitaciones/:id",
+        "DELETE /api/capacitaciones/:id",
+        "POST /api/capacitaciones/:id/registrar",
+        "DELETE /api/capacitaciones/:id/registrar/:usuario_id",
+        "PUT /api/capacitaciones/:id/registrar/:usuario_id/asistencia",
+        "GET /api/usuarios/:id/capacitaciones"
+      ]
+    },
+    {
+      "id": "F05",
+      "name": "Frontend - Setup, Router y Layout",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F02"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "frontend/agenda-frontend/src/router.tsx",
+        "frontend/agenda-frontend/src/components/layout/Navbar.tsx",
+        "frontend/agenda-frontend/src/components/layout/Sidebar.tsx",
+        "frontend/agenda-frontend/src/components/layout/Footer.tsx",
+        "frontend/agenda-frontend/src/lib/api.ts",
+        "frontend/agenda-frontend/src/store/authStore.ts"
+      ],
+      "techStack": [
+        "TanStack Router",
+        "TanStack Query",
+        "Zustand",
+        "Axios",
+        "Shadcn/ui",
+        "Tailwind CSS"
+      ]
+    },
+    {
+      "id": "F06",
+      "name": "Frontend - Autenticación (Login, Register, OAuth)",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F05"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "frontend/agenda-frontend/src/routes/login.tsx",
+        "frontend/agenda-frontend/src/routes/register.tsx",
+        "frontend/agenda-frontend/src/routes/auth/google-callback.tsx",
+        "frontend/agenda-frontend/src/routes/auth/outlook-callback.tsx",
+        "frontend/agenda-frontend/src/hooks/useAuth.ts"
+      ]
+    },
+    {
+      "id": "F07",
+      "name": "Frontend - Dashboard Personal y Lista Capacitaciones",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["F06"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "frontend/agenda-frontend/src/routes/dashboard.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/index.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/$id.tsx",
+        "frontend/agenda-frontend/src/components/CapacitacionCard.tsx",
+        "frontend/agenda-frontend/src/hooks/useCapacitaciones.ts"
+      ]
+    },
+    {
+      "id": "F08",
+      "name": "Frontend - Formulario Crear Capacitación (Combo Dependiente)",
+      "status": "pending",
+      "priority": "critical",
+      "dependencies": ["F07"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "frontend/agenda-frontend/src/routes/capacitaciones/crear.tsx",
+        "frontend/agenda-frontend/src/components/SelectArea.tsx",
+        "frontend/agenda-frontend/src/components/SelectCapacitador.tsx",
+        "frontend/agenda-frontend/src/components/CapacitacionForm.tsx",
+        "frontend/agenda-frontend/src/hooks/useAreas.ts"
+      ],
+      "keyFeature": "Combo dependiente: área → cargar personal → filtrar capacitadores",
+      "validation": "El combo de capacitadores DEBE llenarse dinámicamente según el área seleccionada usando GET /api/areas/:id/personal"
+    },
+    {
+      "id": "F09",
+      "name": "Backend - Integraciones Externas (Calendarios + Email)",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F04"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/services/calendar-sync.service.js",
+        "backend/src/services/google-calendar.service.js",
+        "backend/src/services/microsoft-graph.service.js",
+        "backend/src/services/email.service.js"
+      ],
+      "integrations": [
+        "Google Calendar API",
+        "Microsoft Graph API (Outlook)",
+        "SendGrid/Resend (Email)"
+      ]
+    },
+    {
+      "id": "F10",
+      "name": "Frontend - Dashboard Jefe de Área",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["F08"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "frontend/agenda-frontend/src/routes/dashboard/area.tsx",
+        "frontend/agenda-frontend/src/components/PersonalTable.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/$id/asistencia.tsx"
+      ]
+    },
+    {
+      "id": "F11",
+      "name": "Backend - Dashboard y Reportes",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["F09"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/src/routes/dashboard.js",
+        "backend/src/controllers/dashboardController.js"
+      ],
+      "endpoints": [
+        "GET /api/dashboard/area/:id",
+        "GET /api/dashboard/usuario"
+      ]
+    },
+    {
+      "id": "F12",
+      "name": "Testing - Unit, Integration, E2E",
+      "status": "pending",
+      "priority": "high",
+      "dependencies": ["F10", "F11"],
+      "estimatedWeeks": 2,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "backend/tests/",
+        "frontend/agenda-frontend/tests/"
+      ]
+    },
+    {
+      "id": "F13",
+      "name": "Deployment - VPS + CI/CD",
+      "status": "pending",
+      "priority": "medium",
+      "dependencies": ["F12"],
+      "estimatedWeeks": 1,
+      "assignedAgent": "builder",
+      "artifacts": [
+        "docs/DEPLOYMENT.md",
+        ".github/workflows/",
+        "docker-compose.yml"
+      ]
+    }
+  ],
+  "metadata": {
+    "totalFeatures": 14,
+    "completed": 2,
+    "inProgress": 0,
+    "pending": 12,
+    "estimatedTotalWeeks": 12
+  }
+}
