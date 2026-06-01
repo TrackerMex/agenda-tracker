@@ -52,10 +52,12 @@
     {
       "id": "F02",
       "name": "Backend - Autenticación JWT + OAuth",
-      "status": "pending",
+      "status": "done",
       "priority": "critical",
       "dependencies": ["F01"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.2,
+      "completedDate": "2026-06-01",
       "assignedAgent": "builder",
       "artifacts": [
         "backend/src/routes/auth.js",
@@ -74,10 +76,12 @@
     {
       "id": "F03",
       "name": "Backend - CRUD Áreas y Usuarios",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["F02"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.2,
+      "completedDate": "2026-06-01",
       "assignedAgent": "builder",
       "artifacts": [
         "backend/src/routes/areas.js",
@@ -280,9 +284,9 @@
   ],
   "metadata": {
     "totalFeatures": 14,
-    "completed": 2,
+    "completed": 4,
     "inProgress": 0,
-    "pending": 12,
+    "pending": 10,
     "estimatedTotalWeeks": 12
   }
 }

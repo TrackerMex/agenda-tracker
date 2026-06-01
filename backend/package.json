@@ -5,8 +5,8 @@
   "main": "src/app.js",
   "type": "module",
   "scripts": {
-    "dev": "node --watch src/app.js",
-    "start": "node src/app.js",
+    "dev": "tsx watch src/server.js",
+    "start": "tsx src/server.js",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
@@ -14,14 +14,22 @@
     "db:seed": "tsx src/db/seed.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["capacitaciones", "agenda", "calendar"],
+  "keywords": [
+    "capacitaciones",
+    "agenda",
+    "calendar"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "drizzle-orm": "^0.45.2",
     "express": "^5.2.1",
-    "postgres": "^3.4.9"
+    "jsonwebtoken": "^9.0.3",
+    "postgres": "^3.4.9",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^25.9.1",

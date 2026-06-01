@@ -2,55 +2,59 @@
 
 ## Ultima Feature Cerrada
 
-**ID:** F01
-**Nombre:** Base de Datos - Schema y Migraciones
+**ID:** F03
+**Nombre:** Backend - CRUD Areas y Usuarios
 **Status:** done
-**Inicio:** 2026-05-20
 **Cierre:** 2026-06-01
 
 ## Resultado
 
-F01 fue validada y aprobada. La base PostgreSQL local acepto migraciones y seeders con la `DATABASE_URL` actual.
+F03 fue implementada, validada y aprobada. El backend ya expone CRUD basico de areas y usuarios con autenticacion JWT, RBAC por permisos y validaciones Zod.
 
 ## Validacion Ejecutada
 
-- [x] `backend/drizzle.config.ts` revisado.
-- [x] `backend/src/db/schema.ts` revisado: 9 tablas requeridas presentes.
-- [x] Migracion inicial revisada: `backend/src/db/migrations/0000_medical_gamora.sql`.
-- [x] Seed revisado y ajustado para ser idempotente.
-- [x] `npm run db:generate` ejecutado correctamente.
-- [x] `npm run db:migrate` ejecutado correctamente.
-- [x] `npm run db:seed` ejecutado correctamente.
-- [x] Validaciones SQL ejecutadas correctamente.
+- [x] `GET /api/areas`
+- [x] `GET /api/areas/:id`
+- [x] `GET /api/areas/:id/personal`
+- [x] `POST /api/areas`
+- [x] `PUT /api/areas/:id`
+- [x] `GET /api/usuarios`
+- [x] `GET /api/usuarios/:id`
+- [x] `PUT /api/usuarios/:id`
+- [x] RBAC 403 para usuario sin permiso
+- [x] Zod 400 para datos invalidos
 
-## Datos Confirmados
-
-```text
-areas: 4
-usuarios: 14
-roles: 4
-permisos: 15
-role_permisos: 32
-usuarios_roles: 14
-capacitaciones: 3
-```
-
-Personal del area Desarrollo confirmado:
+## Smoke Test
 
 ```text
-juan.perez@empresa.com
-maria.garcia@empresa.com
-carlos.lopez@empresa.com
-ana.martinez@empresa.com
+loginJefe: 200
+areasList: 200
+areaShow: 200
+personal: 200
+usuariosList: 200
+usuarioShow: 200
+usuarioUpdate: 200
+invalidUsuario: 400
+rbacForbidden: 403
+createAreaAdmin: 201
+updateAreaAdmin: 200
+invalidArea: 400
 ```
 
 ## Cambios Realizados
 
-- `backend/src/db/seed.ts`: se corrigio el uso de `where` en Drizzle con `eq(...)`.
-- `backend/src/db/seed.ts`: el seed ahora es idempotente y puede correrse sobre datos existentes.
-- `progress/review_f01.md`: actualizado como aprobado.
-- `feature_list.json`: F01 marcada como `done`.
+- `backend/src/middleware/rbac.js`
+- `backend/src/services/areas.service.js`
+- `backend/src/services/usuarios.service.js`
+- `backend/src/controllers/areasController.js`
+- `backend/src/controllers/usuariosController.js`
+- `backend/src/routes/areas.js`
+- `backend/src/routes/usuarios.js`
+- `backend/src/app.js`
+- `progress/impl_f03.md`
+- `progress/review_f03.md`
+- `feature_list.json`: F03 marcada como `done`.
 
 ## Proxima Feature
 
-**F02 - Backend Autenticacion JWT + OAuth** queda lista para iniciar.
+**F04 - Backend CRUD Capacitaciones y Registros** queda lista para iniciar.
