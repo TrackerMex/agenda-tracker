@@ -2,55 +2,67 @@
 
 ## Ultima Feature Cerrada
 
-**ID:** F01
-**Nombre:** Base de Datos - Schema y Migraciones
+**ID:** F04
+**Nombre:** Backend - CRUD Capacitaciones y Registros
 **Status:** done
-**Inicio:** 2026-05-20
 **Cierre:** 2026-06-01
 
 ## Resultado
 
-F01 fue validada y aprobada. La base PostgreSQL local acepto migraciones y seeders con la `DATABASE_URL` actual.
+F04 fue implementada, validada y aprobada. El backend ya expone CRUD de capacitaciones, registros, asistencia, cancelacion y listados derivados por area/usuario.
 
 ## Validacion Ejecutada
 
-- [x] `backend/drizzle.config.ts` revisado.
-- [x] `backend/src/db/schema.ts` revisado: 9 tablas requeridas presentes.
-- [x] Migracion inicial revisada: `backend/src/db/migrations/0000_medical_gamora.sql`.
-- [x] Seed revisado y ajustado para ser idempotente.
-- [x] `npm run db:generate` ejecutado correctamente.
-- [x] `npm run db:migrate` ejecutado correctamente.
-- [x] `npm run db:seed` ejecutado correctamente.
-- [x] Validaciones SQL ejecutadas correctamente.
+- [x] `GET /api/capacitaciones`
+- [x] `GET /api/capacitaciones/:id`
+- [x] `GET /api/areas/:id/capacitaciones`
+- [x] `POST /api/capacitaciones`
+- [x] `PUT /api/capacitaciones/:id`
+- [x] `DELETE /api/capacitaciones/:id`
+- [x] `POST /api/capacitaciones/:id/registrar`
+- [x] `DELETE /api/capacitaciones/:id/registrar/:usuario_id`
+- [x] `PUT /api/capacitaciones/:id/registrar/:usuario_id/asistencia`
+- [x] `GET /api/usuarios/:id/capacitaciones`
+- [x] Registro duplicado 409
+- [x] Cupo lleno 409
+- [x] Registro en cancelada 400
 
-## Datos Confirmados
-
-```text
-areas: 4
-usuarios: 14
-roles: 4
-permisos: 15
-role_permisos: 32
-usuarios_roles: 14
-capacitaciones: 3
-```
-
-Personal del area Desarrollo confirmado:
+## Smoke Test
 
 ```text
-juan.perez@empresa.com
-maria.garcia@empresa.com
-carlos.lopez@empresa.com
-ana.martinez@empresa.com
+loginJefe: 200
+registerUser: 201
+createCap: 201
+invalidCap: 400
+listCaps: 200
+showCap: 200
+byArea: 200
+updateCap: 200
+registerCap: 201
+duplicateReg: 409
+asistencia: 200
+byUsuario: 200
+unregister: 200
+cancelCap: 200
+regCancelled: 400
+ownerUpdate: 200
+capacity: 409 en sexto registro
 ```
 
 ## Cambios Realizados
 
-- `backend/src/db/seed.ts`: se corrigio el uso de `where` en Drizzle con `eq(...)`.
-- `backend/src/db/seed.ts`: el seed ahora es idempotente y puede correrse sobre datos existentes.
-- `progress/review_f01.md`: actualizado como aprobado.
-- `feature_list.json`: F01 marcada como `done`.
+- `backend/src/services/capacitaciones.service.js`
+- `backend/src/controllers/capacitacionesController.js`
+- `backend/src/controllers/registrosController.js`
+- `backend/src/routes/capacitaciones.js`
+- `backend/src/routes/registros.js`
+- `backend/src/routes/areas.js`
+- `backend/src/routes/usuarios.js`
+- `backend/src/app.js`
+- `progress/impl_f04.md`
+- `progress/review_f04.md`
+- `feature_list.json`: F04 marcada como `done`.
 
 ## Proxima Feature
 
-**F02 - Backend Autenticacion JWT + OAuth** queda lista para iniciar.
+**F05 - Frontend Setup, Router y Layout** queda lista para iniciar.

@@ -231,3 +231,119 @@ capacitaciones: 3
 ### Proximo Paso
 
 Iniciar F02: Backend - Autenticacion JWT + OAuth.
+
+---
+
+## [2026-06-01] Feature F02 - Aprobada
+
+**Feature:** F02 - Backend Autenticacion JWT + OAuth
+**Status:** done
+**Builder/Reviewer:** Codex
+
+### Acciones Realizadas
+
+1. Se creo la app Express base (`src/app.js`, `src/server.js`).
+2. Se implementaron rutas, controlador, servicio y middleware de autenticacion.
+3. Se instalaron `bcryptjs`, `jsonwebtoken`, `zod` y `cors`.
+4. Se configuraron variables JWT en `backend/.env`.
+5. Se agrego `GET /api/auth/me` para validar el middleware JWT.
+6. Se ejecuto smoke test completo con registro, login, refresh, OAuth y usuario seed.
+7. Se marco F02 como `done` en `feature_list.json`.
+
+### Verificacion
+
+```text
+health: 200
+register: 201
+duplicate: 409
+login: 200
+me: 200
+refresh: 200
+google: 200
+outlook: 200
+seedLogin: 200
+```
+
+### Proximo Paso
+
+Iniciar F03: Backend - CRUD Areas y Usuarios, incluyendo el endpoint critico `GET /api/areas/:id/personal`.
+
+---
+
+## [2026-06-01] Feature F03 - Aprobada
+
+**Feature:** F03 - Backend CRUD Areas y Usuarios
+**Status:** done
+**Builder/Reviewer:** Codex
+
+### Acciones Realizadas
+
+1. Se implemento middleware RBAC con permisos desde BD.
+2. Se implementaron servicios, controladores y rutas para areas.
+3. Se implementaron servicios, controladores y rutas para usuarios.
+4. Se agrego el endpoint critico `GET /api/areas/:id/personal`.
+5. Se agregaron validaciones Zod.
+6. Se ejecuto smoke test completo incluyendo RBAC 403 y validaciones 400.
+7. Se marco F03 como `done` en `feature_list.json`.
+
+### Verificacion
+
+```text
+loginJefe: 200
+areasList: 200
+areaShow: 200
+personal: 200
+usuariosList: 200
+usuarioShow: 200
+usuarioUpdate: 200
+invalidUsuario: 400
+rbacForbidden: 403
+createAreaAdmin: 201
+updateAreaAdmin: 200
+invalidArea: 400
+```
+
+### Proximo Paso
+
+Iniciar F04: Backend - CRUD Capacitaciones y Registros.
+
+---
+
+## [2026-06-01] Feature F04 - Aprobada
+
+**Feature:** F04 - Backend CRUD Capacitaciones y Registros
+**Status:** done
+**Builder/Reviewer:** Codex
+
+### Acciones Realizadas
+
+1. Se implemento servicio, controlador y rutas de capacitaciones.
+2. Se implementaron registros, desregistro y asistencia.
+3. Se agregaron endpoints derivados por area y usuario.
+4. Se validaron reglas de negocio: fecha, cupo, duplicados, area del capacitador y cancelacion.
+5. Se ejecuto smoke test completo.
+6. Se marco F04 como `done` en `feature_list.json`.
+
+### Verificacion
+
+```text
+createCap: 201
+invalidCap: 400
+listCaps: 200
+showCap: 200
+byArea: 200
+updateCap: 200
+registerCap: 201
+duplicateReg: 409
+asistencia: 200
+byUsuario: 200
+unregister: 200
+cancelCap: 200
+regCancelled: 400
+ownerUpdate: 200
+capacity: sexto registro 409
+```
+
+### Proximo Paso
+
+Iniciar F05: Frontend - Setup, Router y Layout.
