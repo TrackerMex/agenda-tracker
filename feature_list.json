@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "version": "1.0",
   "project": "Plataforma de Agendas para Capacitaciones",
-  "lastUpdated": "2026-06-01",
+  "lastUpdated": "2026-06-02",
   "features": [
     {
       "id": "F00",
@@ -133,77 +133,159 @@
     {
       "id": "F05",
       "name": "Frontend - Setup, Router y Layout",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["F02"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.1,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
+        "frontend/agenda-frontend/package.json",
+        "frontend/agenda-frontend/tsconfig.json",
+        "frontend/agenda-frontend/tsconfig.app.json",
+        "frontend/agenda-frontend/tsconfig.node.json",
+        "frontend/agenda-frontend/vite.config.ts",
+        "frontend/agenda-frontend/tailwind.config.js",
+        "frontend/agenda-frontend/postcss.config.js",
+        "frontend/agenda-frontend/index.html",
+        "frontend/agenda-frontend/.env.example",
         "frontend/agenda-frontend/src/router.tsx",
+        "frontend/agenda-frontend/src/App.tsx",
+        "frontend/agenda-frontend/src/main.tsx",
+        "frontend/agenda-frontend/src/vite-env.d.ts",
+        "frontend/agenda-frontend/src/lib/api.ts",
+        "frontend/agenda-frontend/src/lib/queryClient.ts",
+        "frontend/agenda-frontend/src/lib/utils.ts",
+        "frontend/agenda-frontend/src/store/authStore.ts",
+        "frontend/agenda-frontend/src/types/index.ts",
+        "frontend/agenda-frontend/src/styles/globals.css",
         "frontend/agenda-frontend/src/components/layout/Navbar.tsx",
         "frontend/agenda-frontend/src/components/layout/Sidebar.tsx",
         "frontend/agenda-frontend/src/components/layout/Footer.tsx",
-        "frontend/agenda-frontend/src/lib/api.ts",
-        "frontend/agenda-frontend/src/store/authStore.ts"
+        "frontend/agenda-frontend/src/components/layout/AppLayout.tsx",
+        "frontend/agenda-frontend/src/routes/__root.tsx",
+        "frontend/agenda-frontend/src/routes/index.tsx",
+        "frontend/agenda-frontend/src/routes/login.tsx",
+        "frontend/agenda-frontend/src/routes/register.tsx",
+        "frontend/agenda-frontend/src/routes/dashboard.tsx",
+        "frontend/agenda-frontend/src/routes/dashboard/area.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/index.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/crear.tsx"
       ],
       "techStack": [
-        "TanStack Router",
-        "TanStack Query",
-        "Zustand",
-        "Axios",
-        "Shadcn/ui",
-        "Tailwind CSS"
+        "Vite 6",
+        "React 19",
+        "TypeScript 5.7",
+        "TanStack Router 1.87 (file-based)",
+        "TanStack Query 5.62",
+        "Zustand 5 + persist",
+        "Axios 1.7",
+        "Tailwind CSS 3.4 (light/dark)",
+        "lucide-react",
+        "Zod 3.24"
       ]
     },
     {
       "id": "F06",
       "name": "Frontend - Autenticación (Login, Register, OAuth)",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["F05"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.15,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
+        "frontend/agenda-frontend/src/services/auth.service.ts",
+        "frontend/agenda-frontend/src/hooks/useAuth.ts",
+        "frontend/agenda-frontend/src/hooks/useAreas.ts",
+        "frontend/agenda-frontend/src/components/ui/input.tsx",
+        "frontend/agenda-frontend/src/components/ui/label.tsx",
+        "frontend/agenda-frontend/src/components/ui/card.tsx",
+        "frontend/agenda-frontend/src/components/ui/alert.tsx",
+        "frontend/agenda-frontend/src/components/auth/OAuthSimulationForm.tsx",
         "frontend/agenda-frontend/src/routes/login.tsx",
         "frontend/agenda-frontend/src/routes/register.tsx",
         "frontend/agenda-frontend/src/routes/auth/google-callback.tsx",
         "frontend/agenda-frontend/src/routes/auth/outlook-callback.tsx",
-        "frontend/agenda-frontend/src/hooks/useAuth.ts"
-      ]
+        "progress/impl_f06.md",
+        "progress/review_f06.md"
+      ],
+      "integrations": [
+        "POST /api/auth/login",
+        "POST /api/auth/register",
+        "POST /api/auth/google",
+        "POST /api/auth/outlook",
+        "POST /api/auth/refresh",
+        "GET /api/auth/me"
+      ],
+      "notes": "OAuth simulado en F06; integracion real con Google/Microsoft se hara en F09. Refresh token queue implementado para evitar race conditions."
     },
     {
       "id": "F07",
       "name": "Frontend - Dashboard Personal y Lista Capacitaciones",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["F06"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.2,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
+        "frontend/agenda-frontend/src/services/capacitaciones.service.ts",
+        "frontend/agenda-frontend/src/hooks/useCapacitaciones.ts",
+        "frontend/agenda-frontend/src/components/ui/badge.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/CapacitacionCard.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/CapacitacionStatusBadge.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/CapacitacionFilters.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/EmptyState.tsx",
         "frontend/agenda-frontend/src/routes/dashboard.tsx",
         "frontend/agenda-frontend/src/routes/capacitaciones/index.tsx",
         "frontend/agenda-frontend/src/routes/capacitaciones/$id.tsx",
-        "frontend/agenda-frontend/src/components/CapacitacionCard.tsx",
-        "frontend/agenda-frontend/src/hooks/useCapacitaciones.ts"
+        "progress/impl_f07.md",
+        "progress/review_f07.md"
+      ],
+      "endpoints": [
+        "GET /api/capacitaciones",
+        "GET /api/capacitaciones/:id",
+        "GET /api/usuarios/:id/capacitaciones",
+        "POST /api/capacitaciones/:id/registrar",
+        "DELETE /api/capacitaciones/:id/registrar/:usuario_id",
+        "PUT /api/capacitaciones/:id/registrar/:usuario_id/asistencia"
       ]
     },
     {
       "id": "F08",
       "name": "Frontend - Formulario Crear Capacitación (Combo Dependiente)",
-      "status": "pending",
+      "status": "done",
       "priority": "critical",
       "dependencies": ["F07"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.15,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
+        "frontend/agenda-frontend/src/services/areas.service.ts",
+        "frontend/agenda-frontend/src/hooks/useAreas.ts",
+        "frontend/agenda-frontend/src/services/capacitaciones.service.ts",
+        "frontend/agenda-frontend/src/hooks/useCapacitaciones.ts",
+        "frontend/agenda-frontend/src/components/capacitacion/SelectArea.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/SelectCapacitador.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/CapacitacionForm.tsx",
         "frontend/agenda-frontend/src/routes/capacitaciones/crear.tsx",
-        "frontend/agenda-frontend/src/components/SelectArea.tsx",
-        "frontend/agenda-frontend/src/components/SelectCapacitador.tsx",
-        "frontend/agenda-frontend/src/components/CapacitacionForm.tsx",
-        "frontend/agenda-frontend/src/hooks/useAreas.ts"
+        "frontend/agenda-frontend/src/types/index.ts",
+        "progress/impl_f08.md",
+        "progress/review_f08.md"
       ],
-      "keyFeature": "Combo dependiente: área → cargar personal → filtrar capacitadores",
-      "validation": "El combo de capacitadores DEBE llenarse dinámicamente según el área seleccionada usando GET /api/areas/:id/personal"
+      "endpoints": [
+        "GET /api/areas (public, used in SelectArea)",
+        "GET /api/areas/:id/personal (auth, used in SelectCapacitador - combo dependiente)",
+        "POST /api/capacitaciones (auth, used in CapacitacionForm submit)"
+      ],
+      "keyFeature": "Combo dependiente: area -> cargar personal -> filtrar capacitadores",
+      "validation": "El combo de capacitadores DEBE llenarse dinamicamente segun el area seleccionada usando GET /api/areas/:id/personal",
+      "notes": "Default inteligente: pre-rellena area_id con el area del usuario. Cambio de area limpia automaticamente el capacitador seleccionado. RBAC: solo jefe_area o admin pueden acceder. Patron useState+zod (consistente con F06)."
     },
     {
       "id": "F09",
@@ -228,16 +310,42 @@
     {
       "id": "F10",
       "name": "Frontend - Dashboard Jefe de Área",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["F08"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.25,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
-        "frontend/agenda-frontend/src/routes/dashboard/area.tsx",
-        "frontend/agenda-frontend/src/components/PersonalTable.tsx",
-        "frontend/agenda-frontend/src/routes/capacitaciones/$id/asistencia.tsx"
-      ]
+        "frontend/agenda-frontend/src/routes/dashboard.area.tsx",
+        "frontend/agenda-frontend/src/routes/dashboard.index.tsx",
+        "frontend/agenda-frontend/src/routes/dashboard.tsx (refactored a layout)",
+        "frontend/agenda-frontend/src/routes/capacitaciones/$id.tsx (refactored a layout)",
+        "frontend/agenda-frontend/src/routes/capacitaciones/$id.index.tsx",
+        "frontend/agenda-frontend/src/routes/capacitaciones/$id/asistencia.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/PersonalTable.tsx",
+        "frontend/agenda-frontend/src/components/capacitacion/AsistenciaList.tsx",
+        "frontend/agenda-frontend/src/services/capacitaciones.service.ts (extension: listByArea)",
+        "frontend/agenda-frontend/src/hooks/useCapacitaciones.ts (extension: useCapacitacionesByArea)",
+        "progress/impl_f10.md",
+        "progress/review_f10.md"
+      ],
+      "endpoints": [
+        "GET /api/areas/:id/personal (F03, usado en PersonalTable)",
+        "GET /api/areas/:id/capacitaciones (F04, usado en DashboardAreaPage)",
+        "GET /api/capacitaciones/:id (F04, usado en AsistenciaPage + detail)",
+        "PUT /api/capacitaciones/:id/registrar/:usuario_id/asistencia (F04, usado en AsistenciaPage)"
+      ],
+      "description": "Dashboard completo para jefe_area con: 4 stat cards del area, tabla de personal con buscador, lista de caps del area agrupadas por estado, pagina de toma de asistencia con per-row save + save all + feedback alert. Refactor de dashboard.tsx y capacitaciones/$id.tsx a layouts con Outlet para soportar rutas anidadas. RBAC: solo jefe_area o admin pueden acceder a /dashboard/area y /capacitaciones/$id/asistencia.",
+      "keyFeatures": [
+        "PersonalTable con busqueda cliente y badges por rol",
+        "AsistenciaList reutilizable (soporta isReadOnly para futuro)",
+        "Tomar asistencia con per-row save Y save all con feedback",
+        "Canceladas son read-only con alert explicativo",
+        "Botón 'Tomar asistencia' solo visible para jefe_area/admin en detail page"
+      ],
+      "notes": "Refactor necesario de dashboard.tsx y capacitaciones/$id.tsx a layouts (Outlet) para que las rutas hijas (dashboard.area.tsx como dot-notation standalone, y capacitaciones/$id/asistencia.tsx como nested) rendericen correctamente. Componentes controlados, patron useState + zod consistente con F06/F08."
     },
     {
       "id": "F11",
@@ -286,9 +394,9 @@
   ],
   "metadata": {
     "totalFeatures": 14,
-    "completed": 5,
+    "completed": 10,
     "inProgress": 0,
-    "pending": 9,
+    "pending": 4,
     "estimatedTotalWeeks": 12
   }
 }
