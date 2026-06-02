@@ -347,3 +347,219 @@ capacity: sexto registro 409
 ### Proximo Paso
 
 Iniciar F05: Frontend - Setup, Router y Layout.
+
+---
+
+## [2026-06-01] Feature F05 - Aprobada
+
+**Feature:** F05 - Frontend Setup, Router y Layout
+**Status:** done
+**Builder/Reviewer:** Codex
+
+### Acciones Realizadas
+
+1. Se inicializo proyecto Vite con React 19 + TS 5.7.
+2. Se configuro TanStack Router file-based + TanStack Query.
+3. Se crearon stores con Zustand (auth persistido en localStorage).
+4. Se implemento AppLayout con Navbar, Sidebar y Footer.
+5. Se creo stub de `progress/fix_f05_shadcn.md` para el fix de dependencias shadcn.
+
+### Proximo Paso
+
+Iniciar F06: Frontend - Autenticacion (login, registro, callbacks OAuth).
+
+---
+
+## [2026-06-02] Feature F06 - Aprobada
+
+**Feature:** F06 - Frontend Autenticacion
+**Status:** done
+**Builder/Reviewer:** Claude Sonnet (M3)
+
+### Acciones Realizadas
+
+1. Paginas de login y register con shadcn/ui.
+2. Hooks `useLogin`, `useRegister`, `useLogout`.
+3. Páginas stub para callbacks de Google y Outlook.
+4. Deteccion y mostrado de errores de campos del backend.
+
+### Proximo Paso
+
+Iniciar F07: Frontend - Dashboard Personal y Lista de Capacitaciones.
+
+---
+
+## [2026-06-02] Feature F07 - Aprobada
+
+**Feature:** F07 - Frontend - Dashboard Personal y Lista de Capacitaciones
+**Status:** done
+**Builder/Reviewer:** Claude Sonnet (M3)
+
+### Acciones Realizadas
+
+1. Service `capacitaciones.service.ts` con 6 metodos HTTP.
+2. Hooks `useCapacitaciones`, `useCapacitacion`, `useMisCapacitaciones` + mutations.
+3. Componentes `CapacitacionCard`, `CapacitacionStatusBadge`, `CapacitacionFilters`, `EmptyState`.
+4. UI base `Badge` shadcn-style con cva.
+5. Dashboard personal con saludo, 4 stat cards, proximas caps, accesos rapidos condicionales.
+6. Lista de capacitaciones con filtros servidor+cliente y grid de cards.
+7. Detalle `$id.tsx` con info, capacitador, inscriptos, action bar sticky.
+8. Fix en `Sidebar.tsx` (`user?.esJefe` → `user?.roles?.includes('jefe_area')`).
+
+### Proximo Paso
+
+Iniciar F08: Frontend - Formulario Crear Capacitacion (Combo Dependiente) - feature critica segun AGENTS.md.
+
+---
+
+## [2026-06-02] Hotfix - Register form no se renderizaba
+
+**ID:** fix_register_areas_401
+**Status:** done
+**Builder/Reviewer:** Claude Sonnet (M3)
+
+### Problema
+
+El usuario reporto: "despues de registrar, redirige a /login". Al validar en navegador se descubrio que el form de `/register` nunca se renderizaba. La causa real: `useAreas()` dispara `GET /api/areas` sin token, el backend tenia `router.use(auth)` global y devolvia 401, el interceptor disparaba `auth:logout`, el listener en `__root.tsx` navegaba a `/login`.
+
+### Cambios
+
+- `backend/src/routes/areas.js`: `GET /` ahora publico, auth por ruta individual
+- `frontend/agenda-frontend/src/lib/api.ts`: 401 handler no despacha `auth:logout` si `isAuthenticated` era `false`
+- `progress/fix_register_areas_401.md`: documentacion completa
+
+### Verificacion (navegador)
+
+- Login `juan.perez@empresa.com` / `password123` → /dashboard OK
+- Logout → /login OK
+- GET `/register` → form visible con 5 areas en dropdown
+- Submit register (`browser.test@empresa.com`, area `Desarrollo`) → usuario creado (id=63), /dashboard con saludo "Hola, Browser 👋"
+- Logout, login, /capacitaciones → 5 caps con filtros OK
+
+### Lecciones
+
+- `router.use(auth)` global bloquea endpoints que deberian ser publicos
+- Un 401 no siempre significa "sesion expirada"
+- Validar el reporte del usuario con navegador, no solo por lectura de codigo
+
+### Proximo Paso
+
+Iniciar F08: Frontend - Formulario Crear Capacitacion (Combo Dependiente).
+
+---
+
+## [2026-06-02] Feature F08 - Aprobada
+
+**Feature:** F08 - Frontend - Formulario Crear Capacitacion (Combo Dependiente)
+**Status:** done
+**Builder/Reviewer:** Claude Sonnet (M3)
+
+### Acciones Realizadas
+
+1. **Extension de types**: agregados `PersonalArea` y `CapacitacionCreatePayload` en `types/index.ts`.
+2. **Nuevo service**: `areas.service.ts` con `list()` y `getPersonal(areaId)`.
+3. **Extension de hook**: `usePersonalArea(areaId)` agregado a `useAreas.ts` con `enabled: areaId > 0` (combo dependiente).
+4. **Extension de service**: `capacitaciones.service.ts` agrego metodo `create(payload)`.
+5. **Extension de hook**: `useCreateCapacitacion()` agregado a `useCapacitaciones.ts` con invalidacion de `KEY_ALL` y `KEY_MIAS` en `onSuccess`.
+6. **Componentes nuevos**:
+   - `SelectArea.tsx` - dropdown controlado con icono `Building2`
+   - `SelectCapacitador.tsx` - **combo dependiente** con 5 estados visuales (no area, loading, empty, error, selected) y filtrado por roles `capacitador`/`jefe_area`/`admin`
+   - `CapacitacionForm.tsx` - form completo con zod, 9 campos, iconos semanticos, pre-relleno del area del usuario, reset automatico del capacitador al cambiar area
+7. **Reemplazo de ruta**: `routes/capacitaciones/crear.tsx` con RBAC (`beforeLoad` para `jefe_area`/`admin`), header con breadcrumb, y success card post-creacion con 3 acciones (Ver detalle, Crear otra, Volver al listado).
+
+### Verificacion (navegador)
+
+15/15 smoke tests pasaron:
+- Login juan.perez (jefe_area) → sidebar muestra "Crear Capacitacion"
+- GET `/capacitaciones/crear` → form con area=Desarrollo pre-rellenado, 5 areas en dropdown, 6 capacitadores de Desarrollo
+- Cambio de area QA → capacitador resetea, fetchea personal, muestra solo Laura/Pedro
+- Submit con form vacio → 4 errores inline con `aria-invalid`
+- Submit con datos validos → POST 201, capacitacion id=6 creada
+- Success card → "Capacitacion creada" + 3 acciones
+- "Ver detalle" → navega a `/capacitaciones/6` con todos los datos correctos
+- Logout + login browser.test (rol usuario) → sidebar solo 2 items
+- Intento de GET `/capacitaciones/crear` como no-jefe → redirect a `/dashboard`
+
+### Decisiones
+
+- **Patron useState + zod** (no react-hook-form): consistente con F06
+- **Componentes controlados** (`value` + `onChange`): permite coordinacion area/capacitador
+- **Default inteligente**: pre-rellena `area_id` con el area del usuario
+- **Reset automatico**: cambiar area limpia el capacitador
+- **5 estados visuales en SelectCapacitador**: feedback claro en cada caso
+- **Email del capacitador en verde**: confirmacion visual bajo el select
+
+### Lecciones
+
+- El `enabled` flag de TanStack Query es la pieza clave del combo dependiente
+- Validar rol en `beforeLoad` evita render + redirect (mejor UX, sin flicker)
+- chrome-devtools `click` no siempre dispara `onSubmit`; workaround: `submitBtn.click()` via `evaluate_script`
+
+### Proximo Paso
+
+Iniciar F09: Backend - Integraciones Externas (Google Calendar + Microsoft Graph + Email), o alternativamente F10: Frontend - Dashboard Jefe de Area.
+
+---
+
+## [2026-06-02] Feature F10 - Aprobada
+
+**Feature:** F10 - Frontend - Dashboard Jefe de Area
+**Status:** done
+**Builder/Reviewer:** Claude Sonnet (M3)
+
+### Acciones Realizadas
+
+1. **Refactor de rutas a layouts anidados**:
+   - `routes/dashboard.tsx` → layout (solo `<Outlet />`) + nueva `routes/dashboard.index.tsx` con el dashboard personal previo
+   - `routes/capacitaciones/$id.tsx` → layout (solo `<Outlet />`) + nueva `routes/capacitaciones/$id.index.tsx` con el detail page previo
+   - Esto permitio que `routes/dashboard.area.tsx` y `routes/capacitaciones/$id/asistencia.tsx` se monten como rutas hijas/standalone segun corresponda
+2. **Componentes nuevos**:
+   - `PersonalTable.tsx`: tabla con busqueda cliente, 4 columnas, badges por rol (Admin/Jefe/Capacitador/Usuario), skeleton loading, footer con "Mostrando N de M personas"
+   - `AsistenciaList.tsx`: componente presentacional reutilizable, soporta modo read-only, dirty tracking con badge "Sin guardar", botones "Asistio" / "No asistio" / "Nota" (expandible a textarea)
+3. **Paginas nuevas/refactorizadas**:
+   - `routes/dashboard.area.tsx`: 4 stat cards (Personas / Capacitadores / Caps activas / Inscriptos), PersonalTable, capacitaciones agrupadas (Proximas/Realizadas/Cerradas), RBAC via `beforeLoad`
+   - `routes/capacitaciones/$id/asistencia.tsx`: 3 stat cards (Total/Asistieron/Pendientes) en tiempo real, lista con AsistenciaList, per-row save + save all + feedback alert, caps canceladas son read-only
+4. **Botón "Tomar asistencia"** en detail page (`$id.index.tsx`) visible solo para `jefe_area` o `admin`
+5. **Extensions backend integration**:
+   - `services/capacitaciones.service.ts`: `listByArea(areaId)` → `GET /api/areas/:areaId/capacitaciones`
+   - `hooks/useCapacitaciones.ts`: `useCapacitacionesByArea(areaId)` con `enabled: areaId > 0`
+
+### Verificacion (navegador)
+
+17/17 smoke tests pasaron:
+
+- Login juan.perez (jefe_area) → sidebar 4 items
+- GET `/dashboard/area` → header "Desarrollo", stat cards 26/6/3/6, PersonalTable con 26 personas, 3 caps en "Proximas" con Ver detalle + Tomar asistencia, 1 cap en "Cerradas" cancelada SIN Tomar asistencia
+- Buscar "Lopez" en PersonalTable → filtra a 1 fila
+- GET `/capacitaciones/1/asistencia` → 3 stat cards (1/0/1), lista con Browser Test
+- Click "Asistio" → "Sin guardar" aparece, "Guardar todo 1" se habilita, stats cambian
+- Click per-row save → alert exito, "Sin guardar" desaparece, "Guardar todo" disabled
+- Verificado via `curl` → `asistio: True` en backend
+- Expandir "Nota", escribir comentario, "Guardar todo" → alert "Se guardaron 1 actualizacion"
+- Verificado via `curl` → comentario persistido en backend
+- GET `/capacitaciones/1` → "Inscriptos" muestra "Asistio" para Browser Test
+- GET `/capacitaciones/4/asistencia` (cancelada) → alert "Capacitacion cancelada", sin stats/lista/buttons
+- Logout + login browser.test (usuario) → sidebar solo 2 items
+- GET `/dashboard/area` como usuario → redirect `/dashboard`
+- GET `/capacitaciones/1/asistencia` como usuario → redirect `/dashboard`
+- GET `/capacitaciones/1` como usuario → sin "Tomar asistencia" button
+
+### Decisiones
+
+- **Patron useState + zod** (no react-hook-form): consistente con F06/F08
+- **Componentes controlados**: AsistenciaList recibe drafts y callbacks (no maneja estado interno)
+- **AsistenciaList con `isReadOnly`**: future-proofing para vista historica de caps cerradas
+- **Layouts con `<Outlet />`**: convertidos dashboard.tsx y $id.tsx para soportar hijos
+- **Canceladas read-only**: UX mas simple y previene errores
+- **Feedback alert unificado**: mismo componente para exito/error de save all/per-row
+
+### Lecciones
+
+- **TanStack Router file-based requiere `<Outlet />`** para que rutas hijas rendericen
+- **El orden de archivos importa**: standalone → layout+index para refactorizar
+- **chrome-devtools `click` no dispara `onSubmit`** en forms React; workaround con `evaluate_script`
+- **LSP cache** puede mostrar errores por archivos ya borrados; forzar con `rm -f tsconfig.tsbuildinfo && npx tsc --noEmit`
+
+### Proximo Paso
+
+Iniciar **F09 - Backend - Integraciones Externas (Google Calendar + Microsoft Graph + Email)**, o alternativamente **F11 - Backend - Dashboard y Reportes**. Recomendacion: F09 primero (valor visible inmediato: notificaciones automaticas).

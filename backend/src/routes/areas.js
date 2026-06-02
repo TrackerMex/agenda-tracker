@@ -6,13 +6,11 @@ import { requirePermission } from '../middleware/rbac.js';
 
 const router = Router();
 
-router.use(auth);
-
-router.get('/', requirePermission('area:ver'), index);
-router.get('/:id/personal', requirePermission('usuario:ver'), personal);
-router.get('/:id/capacitaciones', requirePermission('capacitacion:ver'), byArea);
-router.get('/:id', requirePermission('area:ver'), show);
-router.post('/', requirePermission('area:crear'), store);
-router.put('/:id', requirePermission('area:editar'), update);
+router.get('/', index);
+router.get('/:id/personal', auth, requirePermission('usuario:ver'), personal);
+router.get('/:id/capacitaciones', auth, requirePermission('capacitacion:ver'), byArea);
+router.get('/:id', auth, requirePermission('area:ver'), show);
+router.post('/', auth, requirePermission('area:crear'), store);
+router.put('/:id', auth, requirePermission('area:editar'), update);
 
 export default router;
