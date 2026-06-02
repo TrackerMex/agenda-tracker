@@ -104,10 +104,12 @@
     {
       "id": "F04",
       "name": "Backend - CRUD Capacitaciones y Registros",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["F03"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.2,
+      "completedDate": "2026-06-01",
       "assignedAgent": "builder",
       "artifacts": [
         "backend/src/routes/capacitaciones.js",
@@ -284,9 +286,9 @@
   ],
   "metadata": {
     "totalFeatures": 14,
-    "completed": 4,
+    "completed": 5,
     "inProgress": 0,
-    "pending": 10,
+    "pending": 9,
     "estimatedTotalWeeks": 12
   }
 }

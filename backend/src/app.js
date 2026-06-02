@@ -3,6 +3,7 @@ import cors from 'cors';
 import express from 'express';
 import areasRoutes from './routes/areas.js';
 import authRoutes from './routes/auth.js';
+import capacitacionesRoutes from './routes/capacitaciones.js';
 import usuariosRoutes from './routes/usuarios.js';
 
 const app = express();
@@ -21,6 +22,7 @@ app.get('/health', (_req, res) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/areas', areasRoutes);
+app.use('/api/capacitaciones', capacitacionesRoutes);
 app.use('/api/usuarios', usuariosRoutes);
 
 app.use((req, res) => {
