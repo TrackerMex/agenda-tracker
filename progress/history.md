@@ -563,3 +563,139 @@ Iniciar F09: Backend - Integraciones Externas (Google Calendar + Microsoft Graph
 ### Proximo Paso
 
 Iniciar **F09 - Backend - Integraciones Externas (Google Calendar + Microsoft Graph + Email)**, o alternativamente **F11 - Backend - Dashboard y Reportes**. Recomendacion: F09 primero (valor visible inmediato: notificaciones automaticas).
+
+---
+
+## [2026-06-02] F09 - Backend - Integraciones Externas
+
+**Feature:** F09 - Backend - Integraciones Externas (Google Calendar + Microsoft Graph + Email)
+**Status:** done
+**Builder:** Claude Sonnet
+**Reviewer:** Claude Sonnet
+
+### Acciones Realizadas
+
+1. **Schema Migration (F09-1)**:
+   - 6 columnas OAuth agregadas a `usuarios`: `google_access_token`, `google_refresh_token`, `google_token_expires_at`, `outlook_access_token`, `outlook_refresh_token`, `outlook_token_expires_at`
+   - Migracion `0001_tearful_proemial_gods.sql` generada y aplicada con exito
+
+2. **Dependencias Backend (F09-2)**:
+   - `googleapis@173.0.0` - SDK oficial de Google APIs (Calendar v3, OAuth2)
+   - `@microsoft/microsoft-graph-client@3.0.7` - SDK de Microsoft Graph
+   - `@azure/identity@4.13.1` - peer dep del graph client
+   - `nodemailer@8.0.10` - SMTP generico (Gmail, Mailtrap, SES, etc.)
+
+3. **Service Layer (F09-3)**:
+   - `email.service.js` (176 lineas): nodemailer con auto-degrade, templates HTML+texto en espanol, `sendInscripcionNotification` + `sendCancelacionNotification`. NUNCA lanza.
+   - `google-calendar.service.js` (215 lineas): googleapis SDK, PKCE, `createEvent`/`updateEvent`/`deleteEvent` con Meet link auto. NUNCA lanza.
+   - `microsoft-graph.service.js` (187 lineas): graph client SDK, `createEvent`/`updateEvent`/`deleteEvent` con Teams link auto. NUNCA lanza.
+   - `calendar-sync.service.js` (92 lineas): orchestrator paralelo Google+Outlook, persiste event_ids en BD.
+   - `oauth.service.js` (130 lineas): PKCE state store in-memory con TTL=10min, cleanup cada 5min.
+
+4. **Auth Service Extension (F09-4)**:
+   - `findOrCreateOAuthUserWithTokens({ provider, profile, tokens })`: upsert user con `providerId` + `accessToken` + `refreshToken` + `expiresAt`
+   - `oauthCallbackLogin({ provider, profile, tokens })`: issue session con roleNames
+   - Mantiene `oauthLogin(provider, payload)` (F02 simulado) para backward compat
+
+5. **Auth Controller + Routes (F09-5)**:
+   - 5 handlers nuevos: `googleLogin`, `googleCallback`, `outlookLogin`, `outlookCallback`, `integrationsStatus`
+   - 5 rutas nuevas en `routes/auth.js`: `GET /google/login`, `GET /google/callback`, `GET /outlook/login`, `GET /outlook/callback`, `GET /integrations/status`
+   - Mantiene 6 rutas F02 (register, login, google, outlook, refresh, me)
+
+6. **Capacitaciones Service Integration (F09-6)**:
+   - `createCapacitacion`: `calendarSync.syncCapacitacion(full).catch(...)` async fire-and-forget
+   - `updateCapacitacion`: detecta cambios en campos relevantes, dispara sync
+   - `cancelCapacitacion`: `calendarSync.removeCapacitacion(preCancel)` + `notifyCancelacionToAttendees(preCancel)` async
+   - `registerToCapacitacion`: `notifyInscripcion({ usuarioId, capacitacionId })` async
+   - Helpers privados: `notifyInscripcion`, `notifyCancelacionToAttendees`
+
+7. **Env Files (F09-7)**:
+   - `.env.example`: seccion "Email Service" actualizada a SMTP generico (elimina SendGrid/Resend deprecados)
+   - `.env`: agregada `FRONTEND_URL` + seccion "Integraciones externas (F09)" con vars comentadas
+
+8. **Smoke Tests (F09-8)**:
+   - 12/12 tests pasaron con auto-degrade activo (sin credenciales reales)
+   - Health check, integrations status, OAuth routes (503/400 esperados), create/register/cancel/update cap, backward compat F06 simulado
+
+### Decisiones
+
+- **Service layer + feature flags + auto-degrade**: servicios NUNCA lanzan, retornan `{ sent: false, reason }`. Aplicacion funciona end-to-end sin credenciales.
+- **nodemailer con SMTP generico** (vs SendGrid/Resend): cubre Gmail, Mailtrap, SES, etc. con una sola pieza
+- **OAuth 2.0 real con PKCE** (vs implicit grant o simulado): production-ready, seguro para SPAs
+- **In-memory state store** (vs Redis): aceptable para single-instance, documentado para migracion futura
+- **Integracion async fire-and-forget**: respuestas HTTP inmediatas, fallos de I/O no rompen flujos de negocio
+- **Backward compat con F06**: rutas POST simuladas siguen funcionando, no rompe frontend actual
+- **Capacitador como owner del evento**: eventos se crean en calendario del capacitador que dicta la clase
+- **Meeting links auto-detectados**: "meet" → Google Meet, "teams" → MS Teams, otros → solo location field
+- **Spanish localized dates**: `toLocaleDateString('es-AR')` en emails y eventos
+
+### Lecciones
+
+- **Auto-degrade es clave** para integrar servicios externos sin acoplarse a credenciales: el codigo siempre funciona, los servicios externos son opt-in via env vars
+- **Integracion async fire-and-forget** evita latencia en respuestas HTTP y desacopla I/O de negocio
+- **PKCE state en memoria** es aceptable para single-instance pero hay que planificar migracion a Redis/DB para multi-instance
+- **Backward compat con flujos simulados** (F06) es importante: agregar OAuth real no debe romper el frontend que ya funciona
+- **LSP errors pre-existentes** en `schema.ts` (recursive Drizzle types) y archivos F10 refactorizados (cache stale) no son bloqueantes
+
+
+---
+
+## [2026-06-02] F11 - Backend - Dashboard y Reportes
+
+**Feature:** F11 - Backend - Dashboard y Reportes
+**Status:** done
+**Builder:** Claude Sonnet
+**Reviewer:** Claude Sonnet
+
+### Acciones Realizadas
+
+1. **Service** (`backend/src/services/dashboard.service.js`, NEW, ~230 lineas):
+   - `getAreaDashboard(areaId, actor)`: retorna `{ area, stats, capacitaciones: { futuras, realizadas, cerradas } }`
+   - `getUsuarioDashboard(actor)`: retorna `{ stats, mis_proximas_capacitaciones }`
+   - 11 helpers internos: `countPersonal`, `countCapacitadores`, `countCapsByState`, `countInscritosTotal`, `listCapsForArea`, `listMisProximas`, `countInscripcionesByState`, `countProximasActivas`, `sumCuposLibres`, `ensureCanViewArea`, formatters
+   - SQL aggregations: `COUNT`, `SUM`, subqueries, `GROUP BY`
+   - `Promise.all` para paralelizar (7 queries en area, 4 en usuario)
+   - Casts `::int` explicitos para evitar bigint->string de postgres.js
+
+2. **Controller** (`backend/src/controllers/dashboardController.js`, NEW, 38 lineas):
+   - `area(req, res)`: handler de `GET /area/:id`, valida param con Zod `idSchema`
+   - `usuario(req, res)`: handler de `GET /usuario`
+   - `handleError` estandar (mismo patron que controllers existentes)
+
+3. **Routes** (`backend/src/routes/dashboard.js`, NEW, 11 lineas):
+   - `router.use(auth)` requiere JWT
+   - `GET /area/:id` → `area`
+   - `GET /usuario` → `usuario`
+
+4. **App** (`backend/src/app.js`, MODIFIED):
+   - +2 lineas: `import dashboardRoutes` + `app.use('/api/dashboard', dashboardRoutes)`
+
+5. **Smoke tests** (12/12 pasaron):
+   - Auth (sin token) → 401 ✓
+   - Juan (jefe Desarrollo) → `/area/1` (own area) → 200 con stats 29/6/3/7 ✓
+   - Juan → `/area/2` (NOT own area) → 403 ✓
+   - Juan → `/area/999` (no existe) → 404 ✓
+   - Luis (jefe Operaciones) → `/area/2` (own area) → 200 ✓
+   - Luis → `/area/1` (NOT own area) → 403 ✓
+   - Carlos (usuario regular) → `/area/1` → 403 ✓
+   - Cualquier user → `/usuario` → 200 ✓
+   - `/area/abc` (id invalido) → 400 ✓
+   - Data flow: Carlos registra a cap → `inscripciones_totales: 1→2, proximas_activas: 0→1, mis_proximas: 1 entry` ✓
+
+### Decisiones
+
+- **Matchear shape actual del frontend** (recomendado por usuario): permite migracion futura sin UI changes
+- **Validacion en service, no en middleware**: la regla "jefe_area solo de su area" no se puede expresar como `requirePermission`
+- **Sin nuevos permisos en BD**: usar permisos existentes + validacion custom evita inflar tabla `permisos`
+- **SQL aggregations sobre client-side**: `COUNT`, `SUM`, subqueries son O(1) vs O(N)
+- **`Promise.all` para paralelizar**: 7 queries en `getAreaDashboard` corren en paralelo
+- **No migrar frontend** (recomendado por usuario): endpoints existen como API paralela, scope minimizado
+- **Scope acotado a 2 endpoints** (recomendado por usuario): sin reportes de asistencia ni auditoria, esos van a features separadas
+- **Bigint->string handling**: cast a `::int` detectado y arreglado en smoke tests (patron conocido en postgres.js)
+
+### Lecciones
+
+- **postgres.js retorna bigint como string por default** — siempre castear a `::int` o `::text` segun el caso de uso
+- **Smoke tests manuales con curl** son valiosos pero no escalables — F12 los reemplazara con automatizados
+- **Custom RBAC en service** es valido cuando la regla no se puede expresar como `requirePermission` simple
+- **Matchear shape del frontend** permite migracion sin UI changes — buen principio para evitar refactors en cascada

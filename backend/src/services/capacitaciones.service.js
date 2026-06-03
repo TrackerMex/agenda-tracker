@@ -1,6 +1,8 @@
 import { and, count, eq, sql } from 'drizzle-orm';
 import { db } from '../db/index.ts';
 import { areas, capacitaciones, registrosCapacitacion, usuarios } from '../db/schema.ts';
+import * as calendarSync from './calendar-sync.service.js';
+import * as emailService from './email.service.js';
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -209,7 +211,13 @@ export async function createCapacitacion(payload) {
     })
     .returning();
 
-  return getCapacitacionById(created.id);
+  const full = await getCapacitacionById(created.id);
+
+  calendarSync.syncCapacitacion(full).catch((error) => {
+    console.error('[capacitaciones] create sync error:', error.message);
+  });
+
+  return full;
 }
 
 export async function updateCapacitacion(id, payload, actor) {
@@ -250,7 +258,26 @@ export async function updateCapacitacion(id, payload, actor) {
   if (payload.estado !== undefined) values.estado = payload.estado;
 
   const [updated] = await db.update(capacitaciones).set(values).where(eq(capacitaciones.id, Number(id))).returning();
-  return getCapacitacionById(updated.id);
+  const full = await getCapacitacionById(updated.id);
+
+  const calendarFieldsChanged = [
+    payload.nombre,
+    payload.descripcion,
+    payload.area_id,
+    payload.capacitador_id,
+    payload.fecha,
+    payload.hora_inicio,
+    payload.duracion_minutos,
+    payload.plataforma,
+  ].some((v) => v !== undefined);
+
+  if (calendarFieldsChanged) {
+    calendarSync.syncCapacitacion(full).catch((error) => {
+      console.error('[capacitaciones] update sync error:', error.message);
+    });
+  }
+
+  return full;
 }
 
 export async function cancelCapacitacion(id, actor) {
@@ -262,11 +289,21 @@ export async function cancelCapacitacion(id, actor) {
     throw error;
   }
 
+  const preCancel = await getCapacitacionById(id);
+
   const [updated] = await db
     .update(capacitaciones)
     .set({ estado: 'cancelada', updatedAt: sql`now()` })
     .where(eq(capacitaciones.id, Number(id)))
     .returning();
+
+  calendarSync.removeCapacitacion(preCancel).catch((error) => {
+    console.error('[capacitaciones] cancel sync error:', error.message);
+  });
+
+  notifyCancelacionToAttendees(preCancel).catch((error) => {
+    console.error('[capacitaciones] cancel notify error:', error.message);
+  });
 
   return getCapacitacionById(updated.id);
 }
@@ -295,6 +332,13 @@ export async function registerToCapacitacion(id, userId) {
         usuarioId: Number(userId),
       })
       .returning();
+
+    notifyInscripcion({
+      usuarioId: Number(userId),
+      capacitacionId: Number(id),
+    }).catch((error) => {
+      console.error('[capacitaciones] register notify error:', error.message);
+    });
 
     return formatRegistro(registro);
   } catch (error) {
@@ -373,4 +417,28 @@ export async function listCapacitacionesByUsuario(usuarioId) {
     ...formatCapacitacion(row.capacitacion),
     registro: formatRegistro(row.registro),
   }));
+}
+
+async function notifyInscripcion({ usuarioId, capacitacionId }) {
+  const [user] = await db.select().from(usuarios).where(eq(usuarios.id, Number(usuarioId)));
+  if (!user) return;
+
+  const capacitacion = await getCapacitacionById(capacitacionId);
+
+  await emailService.sendInscripcionNotification({
+    usuario: { id: user.id, nombre: user.nombre, apellido: user.apellido, email: user.email },
+    capacitacion,
+  });
+}
+
+async function notifyCancelacionToAttendees(capacitacion) {
+  const registros = await getRegistrosForCapacitacion(capacitacion.id);
+
+  for (const registro of registros) {
+    if (!registro.usuario) continue;
+    await emailService.sendCancelacionNotification({
+      usuario: registro.usuario,
+      capacitacion,
+    });
+  }
 }

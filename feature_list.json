@@ -290,22 +290,28 @@
     {
       "id": "F09",
       "name": "Backend - Integraciones Externas (Calendarios + Email)",
-      "status": "pending",
+      "status": "done",
       "priority": "high",
       "dependencies": ["F04"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.3,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
         "backend/src/services/calendar-sync.service.js",
         "backend/src/services/google-calendar.service.js",
         "backend/src/services/microsoft-graph.service.js",
-        "backend/src/services/email.service.js"
+        "backend/src/services/email.service.js",
+        "backend/src/services/oauth.service.js",
+        "backend/src/db/migrations/0001_tearful_proemial_gods.sql"
       ],
       "integrations": [
-        "Google Calendar API",
-        "Microsoft Graph API (Outlook)",
-        "SendGrid/Resend (Email)"
-      ]
+        "Google Calendar API (googleapis SDK)",
+        "Microsoft Graph API (@microsoft/microsoft-graph-client SDK)",
+        "SMTP generico (nodemailer)",
+        "OAuth 2.0 con PKCE (real flow)"
+      ],
+      "notes": "Service layer production-ready con feature flags + auto-degrade. Si no hay credenciales, los servicios loggean SKIP y devuelven { sent: false, reason }. Sin throw, los callers continuan. OAuth PKCE con state store in-memory TTL=10min. Tokens persistidos en columnas nuevas de usuarios (googleAccessToken, googleRefreshToken, googleTokenExpiresAt, outlookAccessToken, outlookRefreshToken, outlookTokenExpiresAt). Rutas nuevas: GET /api/auth/{google,outlook}/login (302 redirect), GET /api/auth/{google,outlook}/callback (302 redirect a frontend con token en query), GET /api/auth/integrations/status (health). Backward compat: POST /api/auth/{google,outlook} (F06 simulado) sigue funcionando."
     },
     {
       "id": "F10",
@@ -350,19 +356,23 @@
     {
       "id": "F11",
       "name": "Backend - Dashboard y Reportes",
-      "status": "pending",
+      "status": "done",
       "priority": "medium",
       "dependencies": ["F09"],
       "estimatedWeeks": 1,
+      "actualWeeks": 0.1,
+      "completedDate": "2026-06-02",
       "assignedAgent": "builder",
       "artifacts": [
-        "backend/src/routes/dashboard.js",
-        "backend/src/controllers/dashboardController.js"
+        "backend/src/services/dashboard.service.js",
+        "backend/src/controllers/dashboardController.js",
+        "backend/src/routes/dashboard.js"
       ],
       "endpoints": [
         "GET /api/dashboard/area/:id",
         "GET /api/dashboard/usuario"
-      ]
+      ],
+      "notes": "Service layer con SQL aggregations (count, sum, subqueries) + Promise.all paralelizado. RBAC custom en service (jefe_area solo de su propio area, no nuevos permisos en BD). Shape matchea frontend actual para migracion futura sin UI changes. Casts ::int explicitos para evitar bigint->string de postgres.js. Sin tests automatizados (F12 los agregara). Frontend NO migrado todavia (decision del usuario)."
     },
     {
       "id": "F12",
@@ -394,9 +404,9 @@
   ],
   "metadata": {
     "totalFeatures": 14,
-    "completed": 10,
+    "completed": 12,
     "inProgress": 0,
-    "pending": 4,
+    "pending": 2,
     "estimatedTotalWeeks": 12
   }
 }

@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/index.ts';
 import { areas, roles, usuarios, usuariosRoles } from '../db/schema.ts';
 
@@ -223,8 +223,80 @@ export async function oauthLogin(provider, payload) {
   return issueSession(user, roleNames);
 }
 
+export async function findOrCreateOAuthUserWithTokens({ provider, profile, tokens }) {
+  const providerField = provider === 'google' ? 'googleId' : 'outlookId';
+  const tokenFields = provider === 'google'
+    ? {
+        googleAccessToken: tokens.accessToken,
+        googleRefreshToken: tokens.refreshToken ?? null,
+        googleTokenExpiresAt: tokens.expiresAt ?? null,
+      }
+    : {
+        outlookAccessToken: tokens.accessToken,
+        outlookRefreshToken: tokens.refreshToken ?? null,
+        outlookTokenExpiresAt: tokens.expiresAt ?? null,
+      };
+
+  const normalizedEmail = (profile.email || '').toLowerCase();
+  if (!normalizedEmail) {
+    const error = new Error('El perfil OAuth no incluye email');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const existing = await getUserByEmail(normalizedEmail);
+
+  if (existing) {
+    const [updatedUser] = await db
+      .update(usuarios)
+      .set({
+        [providerField]: profile.providerId,
+        ...tokenFields,
+        updatedAt: sql`now()`,
+      })
+      .where(eq(usuarios.id, existing.id))
+      .returning();
+    const roleNames = await getRoleNamesForUser(updatedUser.id);
+    return { user: updatedUser, roleNames, created: false };
+  }
+
+  const area = await pickDefaultArea();
+  if (!area) {
+    const error = new Error('No hay areas registradas para asignar al usuario OAuth');
+    error.statusCode = 500;
+    throw error;
+  }
+
+  const [createdUser] = await db
+    .insert(usuarios)
+    .values({
+      email: normalizedEmail,
+      password: null,
+      nombre: profile.nombre || normalizedEmail.split('@')[0],
+      apellido: profile.apellido || '',
+      areaId: area.id,
+      [providerField]: profile.providerId,
+      ...tokenFields,
+    })
+    .returning();
+
+  await assignDefaultRole(createdUser.id);
+  const roleNames = await getRoleNamesForUser(createdUser.id);
+  return { user: createdUser, roleNames, created: true };
+}
+
+async function pickDefaultArea() {
+  const [area] = await db.select().from(areas).orderBy(areas.id).limit(1);
+  return area || null;
+}
+
 export function verifyAccessToken(token) {
   return jwt.verify(token, JWT_SECRET);
+}
+
+export async function oauthCallbackLogin({ provider, profile, tokens }) {
+  const { user, roleNames } = await findOrCreateOAuthUserWithTokens({ provider, profile, tokens });
+  return issueSession(user, roleNames);
 }
 
 export async function getAuthenticatedUser(userId) {
