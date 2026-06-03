@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { Calendar, LogOut, User } from 'lucide-react';
+import { ModeToggle } from '@/components/mode-toggle';
 import { useAuthStore } from '@/store/authStore';
 import { cn } from '@/lib/utils';
 
@@ -54,6 +55,7 @@ export function Navbar({ className }: NavbarProps) {
         </div>
 
         <div className="flex items-center gap-3">
+          <ModeToggle />
           {isAuthenticated && user ? (
             <div className="flex items-center gap-3">
               <div className="hidden items-center gap-2 rounded-md bg-secondary px-3 py-1.5 text-sm md:flex">
